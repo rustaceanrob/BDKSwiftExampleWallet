@@ -2,11 +2,13 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>INIntentsSupported</key>
+	<array>
+		<string>Intent</string>
+	</array>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>NSPasteboardUsageDescription</key>
-	<string>&quot;To allow users to copy and paste text between the app and other apps&quot;</string>
-	<key>NSCameraUsageDescription</key>
-	<string>&quot;To scan QR codes&quot;</string>
+	<string>"To allow users to copy and paste text between the app and other apps"</string>
 </dict>
 </plist>

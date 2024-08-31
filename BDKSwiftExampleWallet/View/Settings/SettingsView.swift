@@ -45,20 +45,6 @@ struct SettingsView: View {
                 }
 
                 Section(header: Text("Wallet")) {
-                    Button {
-                        Task {
-                            await viewModel.fullScanWithProgress()
-                        }
-                    } label: {
-                        Text("Full Scan")
-                    }
-                    .foregroundColor(.bitcoinOrange)
-                    if viewModel.walletSyncState == .syncing {
-                        Text("\(viewModel.inspectedScripts)")
-                            .contentTransition(.numericText())
-                            .foregroundColor(.primary)
-                            .animation(.easeInOut, value: viewModel.inspectedScripts)
-                    }
                 }
 
                 Section(header: Text("Danger Zone")) {

@@ -103,7 +103,9 @@ class OnboardingViewModel: ObservableObject {
             try bdkClient.createWallet(words)
             isOnboarding = false
         } catch let error as CreateWithPersistError {
+            print("some error")
             DispatchQueue.main.async {
+                print(error)
                 self.createWithPersistError = error
             }
         } catch {

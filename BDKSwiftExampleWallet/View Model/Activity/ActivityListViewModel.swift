@@ -66,7 +66,8 @@ class ActivityListViewModel {
         self.walletSyncState = .syncing
         do {
             let inspector = WalletSyncScriptInspector(updateProgress: updateProgress)
-            try await bdkClient.syncWithInspector(inspector)
+            let logger = MessageHandler()
+            try await bdkClient.sync(logger)
             self.walletSyncState = .synced
         } catch let error as CannotConnectError {
             self.walletViewError = .generic(message: error.localizedDescription)

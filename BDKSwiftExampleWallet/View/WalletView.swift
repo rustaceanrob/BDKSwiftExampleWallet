@@ -10,6 +10,7 @@ import BitcoinUI
 import SwiftUI
 
 struct WalletView: View {
+    @StateObject private var messageHandler = MessageHandler()
     @Bindable var viewModel: WalletViewModel
     @State private var isAnimating: Bool = false
     @State private var isFirstAppear = true
@@ -78,44 +79,8 @@ struct WalletView: View {
                         HStack {
                             Text("Activity")
                             Spacer()
-                            if viewModel.walletSyncState == .syncing {
-                                HStack {
-                                    if viewModel.progress < 1.0 {
-                                        Text("\(viewModel.inspectedScripts)")
-                                            .padding(.trailing, -5.0)
-                                            .fontWeight(.semibold)
-                                            .contentTransition(.numericText())
-                                            .transition(.opacity)
-
-                                        if !viewModel.bdkClient.needsFullScan() {
-                                            Text("/")
-                                                .padding(.trailing, -5.0)
-                                                .transition(.opacity)
-                                            Text("\(viewModel.totalScripts)")
-                                                .contentTransition(.numericText())
-                                                .transition(.opacity)
-                                        }
-                                    }
-
-                                    if !viewModel.bdkClient.needsFullScan() {
-                                        Text(
-                                            String(
-                                                format: "%.0f%%",
-                                                viewModel.progress * 100
-                                            )
-                                        )
-                                        .contentTransition(.numericText())
-                                        .transition(.opacity)
-                                    }
-                                }
-                                .fontDesign(.monospaced)
-                                .foregroundColor(.secondary)
-                                .font(.caption2)
-                                .fontWeight(.thin)
-                                .animation(.easeInOut, value: viewModel.inspectedScripts)
-                                .animation(.easeInOut, value: viewModel.totalScripts)
-                                .animation(.easeInOut, value: viewModel.progress)
-                            }
+                            ProgressView(value: messageHandler.progress, total: 100)
+                            Spacer()
                             HStack {
                                 HStack(spacing: 5) {
                                     if viewModel.walletSyncState == .syncing {
@@ -165,7 +130,6 @@ struct WalletView: View {
                             viewModel: .init()
                         )
                         .refreshable {
-                            await viewModel.syncOrFullScan()
                             viewModel.getBalance()
                             viewModel.getTransactions()
                             await viewModel.getPrices()
@@ -205,7 +169,7 @@ struct WalletView: View {
                 )
                 .task {
                     if isFirstAppear || newTransactionSent {
-                        await viewModel.syncOrFullScan()
+                        await viewModel.startSyncWithProgress(logger: self.messageHandler)
                         isFirstAppear = false
                         newTransactionSent = false
                     }
