@@ -34,12 +34,7 @@ class TransactionListViewModel {
             return nil
         }
     }
-
-    func getEsploraURL() -> String {
-        let savedEsploraURL = bdkClient.getEsploraURL()
-        return savedEsploraURL
-    }
-
+    
     func getNetwork() -> String {
         let savedNetwork = bdkClient.getNetwork().description
         return savedNetwork

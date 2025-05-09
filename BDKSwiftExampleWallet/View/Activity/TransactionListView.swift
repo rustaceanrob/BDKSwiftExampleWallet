@@ -12,75 +12,14 @@ import SwiftUI
 struct TransactionListView: View {
     @Bindable var viewModel: TransactionListViewModel
     let transactions: [CanonicalTx]
-    let walletSyncState: WalletSyncState
 
     var body: some View {
 
         List {
-            if transactions.isEmpty && walletSyncState == .syncing {
-                TransactionItemView(
-                    canonicalTx: .mock,
-                    isRedacted: true,
-                    sentAndReceivedValues: .init(
-                        sent: Amount.fromSat(satoshi: UInt64(0)),
-                        received: Amount.fromSat(satoshi: UInt64(0))
-                    )
-                )
-                .listRowInsets(EdgeInsets())
-                .listRowSeparator(.hidden)
-            } else if transactions.isEmpty {
-
+            if transactions.isEmpty {
                 VStack(alignment: .leading) {
-
                     Text("No Transactions")
                         .font(.subheadline)
-
-                    let mutinyFaucetURL = URL(string: "https://faucet.mutinynet.com")
-                    let signetFaucetURL = URL(string: "https://signetfaucet.com")
-
-                    if let mutinyFaucetURL,
-                        let signetFaucetURL,
-                        viewModel.getNetwork() != Network.testnet.description
-                            && viewModel.getNetwork() != Network.testnet4.description
-                    {
-                        Button {
-                            UIApplication.shared.open(
-                                viewModel.getEsploraURL()
-                                    == Constants.Config.EsploraServerURLNetwork.Signet.mutiny
-                                    ? mutinyFaucetURL : signetFaucetURL
-                            )
-                        } label: {
-                            HStack(spacing: 2) {
-                                Text("Get sats from faucet")
-                                Image(systemName: "arrow.right")
-                            }
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .underline()
-                        }
-                        .buttonStyle(.plain)
-                    }
-
-                    let testnet4FaucetURL = URL(string: "https://mempool.space/testnet4/faucet")
-
-                    if let testnet4FaucetURL,
-                        viewModel.getNetwork() == Network.testnet4.description
-                    {
-                        Button {
-                            UIApplication.shared.open(
-                                testnet4FaucetURL
-                            )
-                        } label: {
-                            HStack(spacing: 2) {
-                                Text("Get sats from faucet")
-                                Image(systemName: "arrow.right")
-                            }
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .underline()
-                        }
-                        .buttonStyle(.plain)
-                    }
 
                 }
                 .listRowInsets(EdgeInsets())
@@ -151,7 +90,6 @@ struct TransactionListView: View {
             transactions: [
                 .mock
             ],
-            walletSyncState: .synced
         )
     }
     #Preview {
@@ -160,7 +98,6 @@ struct TransactionListView: View {
                 bdkClient: .mock
             ),
             transactions: [],
-            walletSyncState: .synced
         )
     }
 #endif

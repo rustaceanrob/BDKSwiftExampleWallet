@@ -23,17 +23,9 @@ class AmountViewModel {
     }
 
     func getBalance() {
-        do {
-            let balance = try bdkClient.getBalance()
-            self.balanceTotal = balance.total.toSat()
-            self.balanceConfirmed = balance.confirmed.toSat()
-        } catch let error as WalletError {
-            self.amountViewError = .generic(message: error.localizedDescription)
-            self.showingAmountViewErrorAlert = true
-        } catch {
-            self.amountViewError = .generic(message: error.localizedDescription)
-            self.showingAmountViewErrorAlert = true
-        }
+        let balance = bdkClient.getBalance()
+        self.balanceTotal = balance.total.toSat()
+        self.balanceConfirmed = balance.confirmed.toSat()
     }
 
 }

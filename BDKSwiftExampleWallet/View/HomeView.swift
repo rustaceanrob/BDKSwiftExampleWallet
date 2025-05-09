@@ -24,9 +24,6 @@ struct HomeView: View {
             )
             .tint(.primary)
         }
-        .onAppear {
-            viewModel.loadWallet()
-        }
         .alert(isPresented: $viewModel.showingHomeViewErrorAlert) {
             Alert(
                 title: Text("HomeView Error"),

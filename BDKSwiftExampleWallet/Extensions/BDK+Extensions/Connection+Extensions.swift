@@ -11,7 +11,6 @@ extension Connection {
         }
 
         try FileManager.default.ensureDirectoryExists(at: walletDataDirectoryURL)
-        try FileManager.default.removeOldFlatFileIfNeeded(at: documentsDirectoryURL)
         let persistenceBackendPath = walletDataDirectoryURL.appendingPathComponent("wallet.sqlite")
             .path
         let connection = try Connection(path: persistenceBackendPath)

@@ -10,7 +10,6 @@ import BitcoinUI
 import SwiftUI
 
 struct OnboardingView: View {
-    @AppStorage("isOnboarding") var isOnboarding: Bool?
     @ObservedObject var viewModel: OnboardingViewModel
     @State private var showingOnboardingViewErrorAlert = false
     @State private var showingImportView = false
@@ -93,7 +92,7 @@ struct OnboardingView: View {
                             value: animateContent
                         )
 
-                    Text("powered by Bitcoin Dev Kit")
+                    Text("Hacked by 2140")
                         .foregroundStyle(
                             LinearGradient(
                                 gradient: Gradient(colors: [.secondary, .primary]),
@@ -110,40 +109,8 @@ struct OnboardingView: View {
                 }
                 .padding()
 
-                Group {
-                    Picker("Network", selection: $viewModel.selectedNetwork) {
-                        Text("Signet").tag(Network.signet)
-                        Text("Testnet").tag(Network.testnet)
-                        Text("Testnet4").tag(Network.testnet4)
-                    }
-                    .pickerStyle(.automatic)
-                    .tint(.primary)
-                    .accessibilityLabel("Select Bitcoin Network")
-                    .opacity(animateContent ? 1 : 0)
-                    .animation(.easeOut(duration: 0.5).delay(1.5), value: animateContent)
-
-                    Picker("Esplora Server", selection: $viewModel.selectedURL) {
-                        ForEach(viewModel.availableURLs, id: \.self) { url in
-                            Text(
-                                url.replacingOccurrences(
-                                    of: "https://",
-                                    with: ""
-                                ).replacingOccurrences(
-                                    of: "http://",
-                                    with: ""
-                                )
-                            )
-                            .tag(url)
-                        }
-                    }
-                    .pickerStyle(.automatic)
-                    .tint(.primary)
-                    .opacity(animateContent ? 1 : 0)
-                    .animation(.easeOut(duration: 0.5).delay(1.5), value: animateContent)
-                }
-
                 if !viewModel.words.isEmpty {
-                    if viewModel.isDescriptor || viewModel.isXPub {
+                    if viewModel.isDescriptor {
                         Text(viewModel.words)
                             .font(.system(.caption, design: .monospaced))
                             .lineLimit(1)
@@ -166,6 +133,7 @@ struct OnboardingView: View {
                 Spacer()
 
                 Button("Create Wallet") {
+
                     viewModel.createWallet()
                 }
                 .buttonStyle(
@@ -212,6 +180,10 @@ struct OnboardingView: View {
             )
         }
         .onAppear {
+            if viewModel.words.isEmpty {
+                let words = Mnemonic(wordCount: WordCount.words12)
+                viewModel.words = words.description
+            }
             withAnimation {
                 animateContent = true
             }
@@ -221,6 +193,6 @@ struct OnboardingView: View {
 
 #if DEBUG
     #Preview("OnboardingView - en") {
-        OnboardingView(viewModel: .init(bdkClient: .mock))
+        OnboardingView(viewModel: .init(keyClient: .mock))
     }
 #endif

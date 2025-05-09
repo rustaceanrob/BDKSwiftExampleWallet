@@ -43,11 +43,7 @@ struct WalletView: View {
 
                 VStack {
                     ActivityHomeHeaderView(
-                        walletSyncState: viewModel.walletSyncState,
                         progress: viewModel.progress,
-                        inspectedScripts: viewModel.inspectedScripts,
-                        totalScripts: viewModel.totalScripts,
-                        needsFullScan: viewModel.needsFullScan
                     ) {
                         showAllTransactions = true
                     }
@@ -55,14 +51,7 @@ struct WalletView: View {
                     TransactionListView(
                         viewModel: .init(),
                         transactions: viewModel.recentTransactions,
-                        walletSyncState: viewModel.walletSyncState
                     )
-                    .refreshable {
-                        await viewModel.syncOrFullScan()
-                        viewModel.getBalance()
-                        viewModel.getTransactions()
-                        await viewModel.getPrices()
-                    }
 
                     HStack {
                         Button {
@@ -100,17 +89,37 @@ struct WalletView: View {
                 ),
                 perform: { _ in
                     Task {
-                        await viewModel.syncOrFullScan()
                         viewModel.getBalance()
                         viewModel.getTransactions()
                         await viewModel.getPrices()
                     }
                 }
             )
+            .onReceive(
+                NotificationCenter.default.publisher(
+                    for: Notification.Name("WalletUpdated")
+                ),
+                perform: { _ in
+                    Task {
+                        viewModel.getBalance()
+                        viewModel.getTransactions()
+                        await viewModel.getPrices()
+                    }
+                }
+            )
+            .onReceive(
+                NotificationCenter.default.publisher(
+                    for: Notification.Name("ConnectionsChanged")
+                ),
+                perform: { _ in
+                    Task {
+                        viewModel.getNodeInfo()
+                    }
+                }
+            )
             .task {
                 viewModel.getBalance()
                 if isFirstAppear || newTransactionSent {
-                    await viewModel.syncOrFullScan()
                     isFirstAppear = false
                     newTransactionSent = false
                     viewModel.getBalance()
@@ -174,7 +183,16 @@ struct WalletView: View {
             )
         }
         .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
+            ToolbarItem(placement: .topBarLeading) {
+                if viewModel.connected {
+                    Image(systemName: "point.3.filled.connected.trianglepath.dotted")
+                        .foregroundStyle(.green)
+                } else {
+                    Image(systemName: "point.3.connected.trianglepath.dotted")
+                        .foregroundStyle(.red)
+                }
+            }
+            ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     showSettingsView = true
                 } label: {
@@ -192,7 +210,6 @@ struct WalletView: View {
                 bdkClient: .mock,
                 priceClient: .mock,
                 transactions: [.mock],
-                walletSyncState: .synced
             ),
             sendNavigationPath: .constant(.init())
         )

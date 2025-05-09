@@ -22,7 +22,7 @@ class WalletViewModel {
         guard let backupInfo = try? keyClient.getBackupInfo() else { return false }
         return backupInfo.descriptor.contains("tprv") || backupInfo.descriptor.contains("xprv")
     }
-    var inspectedScripts: UInt64 = 0
+    var connected: Bool = false
     var price: Double = 0.00
     var progress: Float = 0.0
     var recentTransactions: [CanonicalTx] {
@@ -37,76 +37,24 @@ class WalletViewModel {
     var time: Int?
     var totalScripts: UInt64 = 0
     var transactions: [CanonicalTx]
-    var walletSyncState: WalletSyncState
     var walletViewError: AppError?
-    var needsFullScan: Bool {
-        bdkClient.needsFullScan()
-    }
 
-    private var updateProgress: @Sendable (UInt64, UInt64) -> Void {
-        { [weak self] inspected, total in
-            DispatchQueue.main.async {
-                self?.totalScripts = total
-                self?.inspectedScripts = inspected
-                self?.progress = total > 0 ? Float(inspected) / Float(total) : 0
-            }
-        }
-    }
-
-    private var updateProgressFullScan: @Sendable (UInt64) -> Void {
-        { [weak self] inspected in
-            DispatchQueue.main.async {
-                self?.inspectedScripts = inspected
-            }
-        }
-    }
 
     init(
         bdkClient: BDKClient = .live,
         keyClient: KeyClient = .live,
         priceClient: PriceClient = .live,
         transactions: [CanonicalTx] = [],
-        walletSyncState: WalletSyncState = .notStarted
     ) {
         self.bdkClient = bdkClient
         self.keyClient = keyClient
         self.priceClient = priceClient
         self.transactions = transactions
-        self.walletSyncState = walletSyncState
-    }
-
-    private func fullScanWithProgress() async {
-        self.walletSyncState = .syncing
-        do {
-            let inspector = WalletFullScanScriptInspector(updateProgress: updateProgressFullScan)
-            try await bdkClient.fullScanWithInspector(inspector)
-            self.walletSyncState = .synced
-        } catch let error as CannotConnectError {
-            self.walletViewError = .generic(message: error.localizedDescription)
-            self.showingWalletViewErrorAlert = true
-        } catch let error as EsploraError {
-            self.walletViewError = .generic(message: error.localizedDescription)
-            self.showingWalletViewErrorAlert = true
-        } catch let error as PersistenceError {
-            self.walletViewError = .generic(message: error.localizedDescription)
-            self.showingWalletViewErrorAlert = true
-        } catch {
-            self.walletSyncState = .error(error)
-            self.showingWalletViewErrorAlert = true
-        }
     }
 
     func getBalance() {
-        do {
-            let balance = try bdkClient.getBalance()
-            self.balanceTotal = balance.total.toSat()
-        } catch let error as WalletError {
-            self.walletViewError = .generic(message: error.localizedDescription)
-            self.showingWalletViewErrorAlert = true
-        } catch {
-            self.walletViewError = .generic(message: error.localizedDescription)
-            self.showingWalletViewErrorAlert = true
-        }
+        let balance = bdkClient.getBalance()
+        self.balanceTotal = balance.total.toSat()
     }
 
     func getPrices() async {
@@ -119,6 +67,10 @@ class WalletViewModel {
             self.showingWalletViewErrorAlert = true
         }
     }
+    
+    func getNodeInfo() {
+        self.connected = bdkClient.isConnected()
+    }
 
     func getTransactions() {
         do {
@@ -130,39 +82,6 @@ class WalletViewModel {
         } catch {
             self.walletViewError = .generic(message: error.localizedDescription)
             self.showingWalletViewErrorAlert = true
-        }
-    }
-
-    private func startSyncWithProgress() async {
-        self.walletSyncState = .syncing
-        do {
-            let inspector = WalletSyncScriptInspector(updateProgress: updateProgress)
-            try await bdkClient.syncWithInspector(inspector)
-            self.walletSyncState = .synced
-        } catch let error as CannotConnectError {
-            self.walletViewError = .generic(message: error.localizedDescription)
-            self.showingWalletViewErrorAlert = true
-        } catch let error as EsploraError {
-            self.walletViewError = .generic(message: error.localizedDescription)
-            self.showingWalletViewErrorAlert = true
-        } catch let error as RequestBuilderError {
-            self.walletViewError = .generic(message: error.localizedDescription)
-            self.showingWalletViewErrorAlert = true
-        } catch let error as PersistenceError {
-            self.walletViewError = .generic(message: error.localizedDescription)
-            self.showingWalletViewErrorAlert = true
-        } catch {
-            self.walletSyncState = .error(error)
-            self.showingWalletViewErrorAlert = true
-        }
-    }
-
-    func syncOrFullScan() async {
-        if bdkClient.needsFullScan() {
-            await fullScanWithProgress()
-            bdkClient.setNeedsFullScan(false)
-        } else {
-            await startSyncWithProgress()
         }
     }
 }

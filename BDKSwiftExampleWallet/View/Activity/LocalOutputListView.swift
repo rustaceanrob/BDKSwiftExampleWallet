@@ -10,18 +10,10 @@ import SwiftUI
 
 struct LocalOutputListView: View {
     let localOutputs: [LocalOutput]
-    let walletSyncState: WalletSyncState
 
     var body: some View {
         List {
-            if localOutputs.isEmpty && walletSyncState == .syncing {
-                LocalOutputItemView(
-                    isRedacted: true,
-                    output: .mock
-                )
-                .listRowInsets(EdgeInsets())
-                .listRowSeparator(.hidden)
-            } else if localOutputs.isEmpty {
+            if localOutputs.isEmpty {
                 Text("No Unspent")
                     .font(.subheadline)
                     .listRowInsets(EdgeInsets())
@@ -43,5 +35,5 @@ struct LocalOutputListView: View {
 }
 
 #Preview {
-    LocalOutputListView(localOutputs: [.mock], walletSyncState: .synced)
+    LocalOutputListView(localOutputs: [.mock])
 }

@@ -26,13 +26,11 @@ struct ActivityListView: View {
                     TransactionListView(
                         viewModel: .init(),
                         transactions: viewModel.transactions,
-                        walletSyncState: viewModel.walletSyncState
                     )
                     .transition(.blurReplace)
                 } else {
                     LocalOutputListView(
                         localOutputs: viewModel.localOutputs,
-                        walletSyncState: viewModel.walletSyncState
                     )
                     .transition(.blurReplace)
                 }

@@ -106,23 +106,6 @@ struct TransactionDetailView: View {
             Spacer()
 
             HStack {
-                if viewModel.network != Network.regtest.description {
-                    Button {
-                        if let esploraURL = viewModel.esploraURL {
-                            let urlString =
-                                "\(esploraURL)/tx/\(canonicalTx.transaction.computeTxid())"
-                                .replacingOccurrences(of: "/api", with: "")
-                            if let url = URL(string: urlString) {
-                                UIApplication.shared.open(url)
-                            }
-                        }
-                    } label: {
-                        Image(systemName: "safari")
-                            .fontWeight(.semibold)
-                            .foregroundStyle(.primary)
-                    }
-                    Spacer()
-                }
                 Button {
                     UIPasteboard.general.string = canonicalTx.transaction.computeTxid()
                     isCopied = true
@@ -153,7 +136,6 @@ struct TransactionDetailView: View {
             .padding()
             .task {
                 viewModel.getNetwork()
-                viewModel.getEsploraUrl()
                 viewModel.getCalulateFee(tx: canonicalTx.transaction)
             }
 

@@ -14,24 +14,10 @@ class ActivityListViewModel {
     let bdkClient: BDKClient
 
     var displayMode: DisplayMode = .transactions
-    var inspectedScripts: UInt64 = 0
     var localOutputs: [LocalOutput] = []
-    var progress: Float = 0.0
     var transactions: [CanonicalTx]
     var showingWalletViewErrorAlert = false
-    var totalScripts: UInt64 = 0
-    var walletSyncState: WalletSyncState
     var walletViewError: AppError?
-
-    private var updateProgress: @Sendable (UInt64, UInt64) -> Void {
-        { [weak self] inspected, total in
-            DispatchQueue.main.async {
-                self?.totalScripts = total
-                self?.inspectedScripts = inspected
-                self?.progress = total > 0 ? Float(inspected) / Float(total) : 0
-            }
-        }
-    }
 
     enum DisplayMode {
         case transactions
@@ -45,7 +31,6 @@ class ActivityListViewModel {
     ) {
         self.bdkClient = bdkClient
         self.transactions = transactions
-        self.walletSyncState = walletSyncState
     }
 
     func getTransactions() {
@@ -71,33 +56,5 @@ class ActivityListViewModel {
             self.walletViewError = .generic(message: error.localizedDescription)
             self.showingWalletViewErrorAlert = true
         }
-    }
-
-    private func startSyncWithProgress() async {
-        self.walletSyncState = .syncing
-        do {
-            let inspector = WalletSyncScriptInspector(updateProgress: updateProgress)
-            try await bdkClient.syncWithInspector(inspector)
-            self.walletSyncState = .synced
-        } catch let error as CannotConnectError {
-            self.walletViewError = .generic(message: error.localizedDescription)
-            self.showingWalletViewErrorAlert = true
-        } catch let error as EsploraError {
-            self.walletViewError = .generic(message: error.localizedDescription)
-            self.showingWalletViewErrorAlert = true
-        } catch let error as RequestBuilderError {
-            self.walletViewError = .generic(message: error.localizedDescription)
-            self.showingWalletViewErrorAlert = true
-        } catch let error as PersistenceError {
-            self.walletViewError = .generic(message: error.localizedDescription)
-            self.showingWalletViewErrorAlert = true
-        } catch {
-            self.walletSyncState = .error(error)
-            self.showingWalletViewErrorAlert = true
-        }
-    }
-
-    func syncOrFullScan() async {
-        await startSyncWithProgress()
     }
 }

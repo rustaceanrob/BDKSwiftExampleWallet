@@ -8,8 +8,5 @@
 import Foundation
 
 enum WalletError: Error {
-    case blockchainConfigNotFound
-    case dbNotFound
     case notSigned
-    case walletNotFound
 }

@@ -10,46 +10,6 @@ import Foundation
 import SwiftUI
 
 struct Constants {
-    struct Config {
-        struct EsploraServerURLNetwork {
-            struct Bitcoin {
-                private static let blockstream = "https://blockstream.info/api"
-                private static let mempoolspace = "https://mempool.space/api"
-                static let allValues = [
-                    mempoolspace,
-                    blockstream,
-                ]
-            }
-            struct Regtest {
-                private static let local = "http://127.0.0.1:3002"
-                static let allValues = [
-                    local
-                ]
-            }
-            struct Signet {
-                static let bdk = "http://signet.bitcoindevkit.net"
-                static let mutiny = "https://mutinynet.com/api"
-                static let allValues = [
-                    mutiny,
-                    bdk,
-                ]
-            }
-            struct Testnet {
-                static let blockstream = "https://blockstream.info/testnet/api/"
-                static let mempoolspace = "https://mempool.space/testnet/api/"
-                static let allValues = [
-                    mempoolspace,
-                    blockstream,
-                ]
-            }
-            struct Testnet4 {
-                static let mempoolspace = "https://mempool.space/testnet4/api/"
-                static let allValues = [
-                    mempoolspace
-                ]
-            }
-        }
-    }
     enum BitcoinNetworkColor {
         case bitcoin
         case regtest
@@ -74,23 +34,6 @@ struct Constants {
             case .testnet4:
                 return Color.cyan
             }
-        }
-    }
-}
-
-extension Network {
-    var url: String {
-        switch self {
-        case .bitcoin:
-            Constants.Config.EsploraServerURLNetwork.Bitcoin.allValues.first ?? ""
-        case .testnet:
-            Constants.Config.EsploraServerURLNetwork.Testnet.allValues.first ?? ""
-        case .signet:
-            Constants.Config.EsploraServerURLNetwork.Signet.allValues.first ?? ""
-        case .regtest:
-            Constants.Config.EsploraServerURLNetwork.Regtest.allValues.first ?? ""
-        case .testnet4:
-            Constants.Config.EsploraServerURLNetwork.Testnet4.allValues.first ?? ""
         }
     }
 }

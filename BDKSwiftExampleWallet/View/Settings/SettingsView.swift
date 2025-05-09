@@ -37,36 +37,8 @@ struct SettingsView: View {
             Form {
 
                 Section(header: Text("Network")) {
-                    if let network = viewModel.network, let url = viewModel.esploraURL {
-                        Text(
-                            "\(network.capitalized) • \(url.replacingOccurrences(of: "https://", with: "").replacingOccurrences(of: "http://", with: ""))"
-                        )
-                        .foregroundStyle(.primary)
-                    } else {
-                        HStack {
-                            Text("No Network")
-                        }
-                    }
-                }
-                .listRowBackground(
-                    colorScheme == .light ? Color.gray.opacity(0.1) : Color.black.opacity(0.2)
-                )
-
-                Section(header: Text("Wallet")) {
-                    Button {
-                        Task {
-                            await viewModel.fullScanWithProgress()
-                        }
-                    } label: {
-                        Text("Full Scan")
-                    }
-                    .foregroundStyle(Color.bitcoinOrange)
-                    if viewModel.walletSyncState == .syncing {
-                        Text("\(viewModel.inspectedScripts)")
-                            .contentTransition(.numericText())
-                            .foregroundStyle(.primary)
-                            .animation(.easeInOut, value: viewModel.inspectedScripts)
-                    }
+                    let network = NETWORK.description
+                    Text("\(network)")
                 }
                 .listRowBackground(
                     colorScheme == .light ? Color.gray.opacity(0.1) : Color.black.opacity(0.2)
@@ -104,7 +76,6 @@ struct SettingsView: View {
             .listRowSeparator(.hidden)
             .onAppear {
                 viewModel.getNetwork()
-                viewModel.getEsploraUrl()
             }
             .padding(.top, 40.0)
 

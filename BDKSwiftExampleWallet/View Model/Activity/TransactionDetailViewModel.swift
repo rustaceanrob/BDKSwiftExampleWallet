@@ -16,8 +16,6 @@ class TransactionDetailViewModel {
 
     var calculateFee: String?
     var calculateFeeError: CalculateFeeError?
-    var esploraError: EsploraError?
-    var esploraURL: String?
     var network: String?
     var showingTransactionDetailsViewErrorAlert = false
     var transactionDetailsError: AppError?
@@ -38,27 +36,6 @@ class TransactionDetailViewModel {
                 self.calculateFeeError = error
             }
         } catch {}
-    }
-
-    func getEsploraUrl() {
-        let savedEsploraURL = bdkClient.getEsploraURL()
-
-        switch network {
-        case "signet":
-            if savedEsploraURL == Constants.Config.EsploraServerURLNetwork.Signet.bdk {
-                self.esploraURL = "https://mempool.space/signet"
-            } else {
-                self.esploraURL = "https://mutinynet.com"
-            }
-        case "testnet":
-            if savedEsploraURL == Constants.Config.EsploraServerURLNetwork.Testnet.blockstream {
-                self.esploraURL = "https://blockstream.info/testnet"
-            } else {
-                self.esploraURL = "https://mempool.space/testnet"
-            }
-        default:
-            self.esploraURL = savedEsploraURL
-        }
     }
 
     func getNetwork() {

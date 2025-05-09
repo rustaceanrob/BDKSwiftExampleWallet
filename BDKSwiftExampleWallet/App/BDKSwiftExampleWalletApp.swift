@@ -17,16 +17,13 @@ struct BDKSwiftExampleWalletApp: App {
         WindowGroup {
             NavigationStack(path: $navigationPath) {
                 let value = try? KeyClient.live.getBackupInfo()
-                if isOnboarding && (value == nil) {
-                    OnboardingView(viewModel: .init(bdkClient: .live))
-                } else if !isOnboarding && (value == nil) {
-                    OnboardingView(viewModel: .init(bdkClient: .live))
+                if value == nil {
+                    OnboardingView(viewModel: .init(keyClient: .live))
                 } else {
                     HomeView(viewModel: .init(bdkClient: .live), navigationPath: $navigationPath)
                 }
             }
             .onChange(of: isOnboarding) { oldValue, newValue in
-                BDKClient.live.setNeedsFullScan(true)
                 navigationPath = NavigationPath()
             }
         }

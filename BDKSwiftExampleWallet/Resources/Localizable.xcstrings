@@ -114,6 +114,7 @@
       }
     },
     "/" : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -129,7 +130,11 @@
         }
       }
     },
+    "%@" : {
+
+    },
     "%@ • %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -238,6 +243,7 @@
       }
     },
     "%llu" : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -587,6 +593,7 @@
       }
     },
     "Esplora Server" : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -651,6 +658,7 @@
       }
     },
     "Full Scan" : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -667,6 +675,7 @@
       }
     },
     "Get sats from faucet" : {
+      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
@@ -675,6 +684,9 @@
           }
         }
       }
+    },
+    "Hacked by 2140" : {
+
     },
     "HomeView Error" : {
       "localizations" : {
@@ -758,6 +770,7 @@
       }
     },
     "No Network" : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -890,6 +903,7 @@
       }
     },
     "powered by Bitcoin Dev Kit" : {
+      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
@@ -992,6 +1006,7 @@
       }
     },
     "Select Bitcoin Network" : {
+      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
@@ -1129,6 +1144,7 @@
       }
     },
     "Signet" : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -1162,6 +1178,7 @@
       }
     },
     "Testnet" : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -1178,6 +1195,7 @@
       }
     },
     "Testnet4" : {
+      "extractionState" : "stale",
       "localizations" : {
         "pt-BR" : {
           "stringUnit" : {
@@ -1334,6 +1352,7 @@
       }
     },
     "Wallet" : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {

@@ -13,97 +13,120 @@ import SwiftUI
 // https://developer.apple.com/forums/thread/731187
 // Feature or Bug?
 class OnboardingViewModel: ObservableObject {
-    let bdkClient: BDKClient
+    let keyClient: KeyClient
 
     @AppStorage("isOnboarding") var isOnboarding: Bool?
-    @Published var createWithPersistError: CreateWithPersistError?
+
+    @Published var applicationError: AppError?
     var isDescriptor: Bool {
         words.hasPrefix("tr(") || words.hasPrefix("wpkh(") || words.hasPrefix("wsh(")
             || words.hasPrefix("sh(")
     }
-    var isXPub: Bool {
-        words.hasPrefix("xpub") || words.hasPrefix("tpub") || words.hasPrefix("vpub")
-    }
     @Published var networkColor = Color.gray
     @Published var onboardingViewError: AppError?
-    @Published var selectedNetwork: Network = .signet {
-        didSet {
-            bdkClient.updateNetwork(selectedNetwork)
-            selectedURL = availableURLs.first ?? ""
-            bdkClient.updateEsploraURL(selectedURL)
-        }
-    }
-    @Published var selectedURL: String = "" {
-        didSet {
-            bdkClient.updateEsploraURL(selectedURL)
-        }
-    }
     @Published var words: String = ""
     var wordArray: [String] {
-        if words.hasPrefix("xpub") || words.hasPrefix("tpub") || words.hasPrefix("vpub") {
+        if words.hasPrefix("tr(") || words.hasPrefix("wpkh(") || words.hasPrefix("wsh(") || words.hasPrefix("sh(") {
             return []
         }
         let trimmedWords = words.trimmingCharacters(in: .whitespacesAndNewlines)
         return trimmedWords.components(separatedBy: " ")
     }
-    var availableURLs: [String] {
-        switch selectedNetwork {
-        case .bitcoin:
-            return Constants.Config.EsploraServerURLNetwork.Bitcoin.allValues
-        case .testnet:
-            return Constants.Config.EsploraServerURLNetwork.Testnet.allValues
-        case .regtest:
-            return Constants.Config.EsploraServerURLNetwork.Regtest.allValues
-        case .signet:
-            return Constants.Config.EsploraServerURLNetwork.Signet.allValues
-        case .testnet4:
-            return Constants.Config.EsploraServerURLNetwork.Testnet4.allValues
-        }
-    }
     var buttonColor: Color {
-        switch selectedNetwork {
-        case .bitcoin:
-            return Constants.BitcoinNetworkColor.bitcoin.color
-        case .testnet:
-            return Constants.BitcoinNetworkColor.testnet.color
-        case .signet:
-            return Constants.BitcoinNetworkColor.signet.color
-        case .regtest:
-            return Constants.BitcoinNetworkColor.regtest.color
-        case .testnet4:
-            return Constants.BitcoinNetworkColor.testnet4.color
-        }
+        #if DEBUG 
+        return Constants.BitcoinNetworkColor.signet.color
+        #else
+        return Constants.BitcoinNetworkColor.bitcoin.color
+        #endif
+    }
+    var network: Network {
+        #if DEBUG
+        return BitcoinDevKit.Network.signet
+        #else
+        return BitcoinDevKit.Network.bitcoin
+        #endif
     }
 
     init(
-        bdkClient: BDKClient = .live
+        keyClient: KeyClient = .live
     ) {
-        self.bdkClient = bdkClient
-        self.selectedNetwork = bdkClient.getNetwork()
-        self.selectedURL = bdkClient.getEsploraURL()
+        self.keyClient = keyClient
     }
 
     func createWallet() {
         do {
-            try bdkClient.deleteWallet()
-            if isDescriptor {
-                try bdkClient.createWalletFromDescriptor(words)
-            } else if isXPub {
-                try bdkClient.createWalletFromXPub(words)
-            } else {
-                try bdkClient.createWalletFromSeed(words)
-            }
+            let backupInfo = try deriveBackupInfo()
+            try keyClient.saveBackupInfo(backupInfo)
             DispatchQueue.main.async {
                 self.isOnboarding = false
             }
-        } catch let error as CreateWithPersistError {
+        } catch let error as KeyServiceError {
             DispatchQueue.main.async {
-                self.createWithPersistError = error
+                self.applicationError = AppError.generic(message: error.localizedDescription)
             }
         } catch {
             DispatchQueue.main.async {
                 self.onboardingViewError = .generic(message: error.localizedDescription)
             }
+        }
+    }
+    
+    func deriveBackupInfo() throws -> BackupInfo {
+        if isDescriptor {
+            let descriptorStrings = words.components(separatedBy: "\n")
+                .map { $0.split(separator: "#").first?.trimmingCharacters(in: .whitespaces) ?? "" }
+                .filter { !$0.isEmpty }
+            let descriptor: Descriptor
+            let changeDescriptor: Descriptor
+            if descriptorStrings.count == 1 {
+                let parsedDescriptor = try Descriptor(
+                    descriptor: descriptorStrings[0],
+                    network: network
+                )
+                let singleDescriptors = try parsedDescriptor.toSingleDescriptors()
+                guard singleDescriptors.count >= 2 else {
+                    throw AppError.generic(message: "Too many output descriptors to parse")
+                }
+                descriptor = singleDescriptors[0]
+                changeDescriptor = singleDescriptors[1]
+            } else if descriptorStrings.count == 2 {
+                descriptor = try Descriptor(descriptor: descriptorStrings[0], network: network)
+                changeDescriptor = try Descriptor(descriptor: descriptorStrings[1], network: network)
+            } else {
+                throw AppError.generic(message: "Descriptor parsing failed")
+            }
+            let backupInfo = BackupInfo(
+                descriptor: descriptor.toStringWithSecret(),
+                changeDescriptor: changeDescriptor.toStringWithSecret(),
+            )
+            isOnboarding = false
+            return backupInfo
+            
+        } else {
+            guard let mnemonic = try? Mnemonic.fromString(mnemonic: words) else {
+                throw AppError.generic(message: "Invalid mnemonic")
+            }
+            let secretKey = DescriptorSecretKey(
+                network: network,
+                mnemonic: mnemonic,
+                password: nil
+            )
+            let descriptor = Descriptor.newBip86(
+                secretKey: secretKey,
+                keychainKind: .external,
+                network: network
+            )
+            let changeDescriptor = Descriptor.newBip86(
+                secretKey: secretKey,
+                keychainKind: .internal,
+                network: network
+            )
+            let backupInfo = BackupInfo(
+                descriptor: descriptor.toStringWithSecret(),
+                changeDescriptor: changeDescriptor.toStringWithSecret(),
+            )
+            isOnboarding = false
+            return backupInfo
         }
     }
 }

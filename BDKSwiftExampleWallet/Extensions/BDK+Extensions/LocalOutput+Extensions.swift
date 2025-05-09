@@ -6,6 +6,7 @@
 //
 
 import BitcoinDevKit
+import Foundation
 
 //#if DEBUG
 extension LocalOutput {
@@ -16,7 +17,7 @@ extension LocalOutput {
         ),
         txout: TxOut(
             value: UInt64(1),
-            scriptPubkey: Script(rawOutputScript: [UInt8(1)])
+            scriptPubkey: Script(rawOutputScript: Data([UInt8(1)]))
         ),
         keychain: .external,
         isSpent: false,
