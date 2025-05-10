@@ -70,6 +70,7 @@ class WalletViewModel {
     
     func getNodeInfo() {
         self.connected = bdkClient.isConnected()
+        self.progress = bdkClient.getProgress()
     }
 
     func getTransactions() {

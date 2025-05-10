@@ -77,21 +77,22 @@ struct OnboardingView: View {
                 Spacer()
 
                 VStack(spacing: isSmallDevice ? 5 : 25) {
-                    Image(systemName: "bitcoinsign.circle")
-                        .resizable()
-                        .foregroundStyle(.secondary)
-                        .frame(
-                            width: isSmallDevice ? 40 : 100,
-                            height: isSmallDevice ? 40 : 100,
-                            alignment: .center
-                        )
-                        .scaleEffect(animateContent ? 1 : 0)
-                        .opacity(animateContent ? 1 : 0)
-                        .animation(
-                            .spring(response: 0.6, dampingFraction: 0.5, blendDuration: 0.6),
-                            value: animateContent
-                        )
-
+                    if viewModel.words.isEmpty {
+                        Image(systemName: "bitcoinsign.circle")
+                            .resizable()
+                            .foregroundStyle(.secondary)
+                            .frame(
+                                width: isSmallDevice ? 40 : 100,
+                                height: isSmallDevice ? 40 : 100,
+                                alignment: .center
+                            )
+                            .scaleEffect(animateContent ? 1 : 0)
+                            .opacity(animateContent ? 1 : 0)
+                            .animation(
+                                .spring(response: 0.6, dampingFraction: 0.5, blendDuration: 0.6),
+                                value: animateContent
+                            )
+                    }
                     Text("Hacked by 2140")
                         .foregroundStyle(
                             LinearGradient(
@@ -131,25 +132,49 @@ struct OnboardingView: View {
                 }
 
                 Spacer()
-
-                Button("Create Wallet") {
-
-                    viewModel.createWallet()
-                }
-                .buttonStyle(
-                    BitcoinFilled(
-                        tintColor: .primary,
-                        textColor: Color(uiColor: .systemBackground),
-                        isCapsule: true
+                if viewModel.words.isEmpty {
+                    Button("New Wallet") {
+                        if viewModel.words.isEmpty {
+                            let words = Mnemonic(wordCount: WordCount.words12)
+                            viewModel.words = words.description
+                        }
+                    }
+                    .buttonStyle(
+                        BitcoinFilled(
+                            tintColor: .primary,
+                            textColor: Color(uiColor: .systemBackground),
+                            isCapsule: true
+                        )
                     )
-                )
-                .padding()
-                .opacity(animateContent ? 1 : 0)
-                .offset(y: animateContent ? 0 : 50)
-                .animation(
-                    .spring(response: 0.6, dampingFraction: 0.7).delay(1.2),
-                    value: animateContent
-                )
+                    .padding()
+                    .opacity(animateContent ? 1 : 0)
+                    .offset(y: animateContent ? 0 : 50)
+                    .animation(
+                        .spring(response: 0.6, dampingFraction: 0.7).delay(1.2),
+                        value: animateContent
+                    )
+                    .contentTransition(.numericText())
+                } else {
+                    Button("Create Wallet") {
+                        viewModel.createWallet()
+                    }
+                    .buttonStyle(
+                        BitcoinFilled(
+                            tintColor: .primary,
+                            textColor: Color(uiColor: .systemBackground),
+                            isCapsule: true
+                        )
+                    )
+                    .padding()
+                    .opacity(animateContent ? 1 : 0)
+                    .offset(y: animateContent ? 0 : 50)
+                    .animation(
+                        .spring(response: 0.6, dampingFraction: 0.7).delay(1.2),
+                        value: animateContent
+                    )
+                    .animation(.easeOut(duration: 0.5).delay(0.6), value: animateContent)
+
+                }
             }
         }
         .alert(isPresented: $showingOnboardingViewErrorAlert) {
@@ -180,10 +205,6 @@ struct OnboardingView: View {
             )
         }
         .onAppear {
-            if viewModel.words.isEmpty {
-                let words = Mnemonic(wordCount: WordCount.words12)
-                viewModel.words = words.description
-            }
             withAnimation {
                 animateContent = true
             }

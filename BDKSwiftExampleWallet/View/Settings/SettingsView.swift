@@ -6,6 +6,7 @@
 //
 
 import BitcoinUI
+import BitcoinDevKit
 import SwiftUI
 
 struct SettingsView: View {
@@ -18,6 +19,14 @@ struct SettingsView: View {
     var isSmallDevice: Bool {
         UIScreen.main.isPhoneSE
     }
+    var network: String {
+        #if DEBUG
+        return BitcoinDevKit.Network.signet.description.localizedCapitalized
+        #else
+        return BitcoinDevKit.Network.bitcoin.description.localizedLowercase
+        #endif
+    }
+
 
     var body: some View {
 
@@ -37,7 +46,6 @@ struct SettingsView: View {
             Form {
 
                 Section(header: Text("Network")) {
-                    let network = NETWORK.description
                     Text("\(network)")
                 }
                 .listRowBackground(

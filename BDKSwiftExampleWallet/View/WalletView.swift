@@ -13,7 +13,6 @@ struct WalletView: View {
         .bitcoinSats
     @Bindable var viewModel: WalletViewModel
     @Binding var sendNavigationPath: NavigationPath
-    @State private var isFirstAppear = true
     @State private var newTransactionSent = false
     @State private var showAllTransactions = false
     @State private var showReceiveView = false
@@ -40,14 +39,16 @@ struct WalletView: View {
                             ]
                     }
                 }
-
                 VStack {
-                    ActivityHomeHeaderView(
-                        progress: viewModel.progress,
-                    ) {
+                    ProgressView(value: viewModel.progress, total: 1.0)
+                        .progressViewStyle(.linear)
+                        .foregroundStyle(.secondary)
+                        .opacity(1.0 - viewModel.progress.magnitudeSquared)
+                        .animation(.easeInOut, value: true)
+                    ActivityHomeHeaderView() {
                         showAllTransactions = true
                     }
-                    
+
                     TransactionListView(
                         viewModel: .init(),
                         transactions: viewModel.recentTransactions,
@@ -101,6 +102,7 @@ struct WalletView: View {
                 ),
                 perform: { _ in
                     Task {
+                        viewModel.progress = 1.0
                         viewModel.getBalance()
                         viewModel.getTransactions()
                         await viewModel.getPrices()
@@ -117,15 +119,23 @@ struct WalletView: View {
                     }
                 }
             )
-            .task {
-                viewModel.getBalance()
-                if isFirstAppear || newTransactionSent {
-                    isFirstAppear = false
-                    newTransactionSent = false
-                    viewModel.getBalance()
+            .onReceive(
+                NotificationCenter.default.publisher(
+                    for: Notification.Name("ProgressChanged")
+                ),
+                perform: { _ in
+                    Task {
+                        viewModel.getNodeInfo()
+                    }
                 }
-                viewModel.getTransactions()
+            )
+            .task {
                 await viewModel.getPrices()
+            }
+            .onAppear {
+                viewModel.getBalance()
+                viewModel.getTransactions()
+                viewModel.getNodeInfo()
             }
 
         }
@@ -184,19 +194,21 @@ struct WalletView: View {
         }
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
-                if viewModel.connected {
-                    Image(systemName: "point.3.filled.connected.trianglepath.dotted")
-                        .foregroundStyle(.green)
-                } else {
-                    Image(systemName: "point.3.connected.trianglepath.dotted")
-                        .foregroundStyle(.red)
+                HStack {
+                    if viewModel.connected {
+                        Image(systemName: "point.3.filled.connected.trianglepath.dotted")
+                            .foregroundStyle(.green)
+                    } else {
+                        Image(systemName: "point.3.connected.trianglepath.dotted")
+                            .foregroundStyle(.red)
+                    }
                 }
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     showSettingsView = true
                 } label: {
-                    Image(systemName: "person.and.background.dotted")
+                    Image(systemName: "gear")
                 }
             }
         }

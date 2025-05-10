@@ -24,6 +24,10 @@ extension Notification.Name {
     static let connectionsChanged = Notification.Name("ConnectionsChanged")
 }
 
+extension Notification.Name {
+    static let progressChanged = Notification.Name("ProgressChanged")
+}
+
 @Observable
 private class BDKService {
     static var shared: BDKService = try! BDKService()
@@ -206,7 +210,11 @@ private class BDKService {
                         DispatchQueue.main.async {
                             NotificationCenter.default.post(name: .connectionsChanged, object: nil)
                         }
-                    case .progress(progress: let prog): self.progress = prog
+                    case .progress(progress: let prog):
+                        self.progress = prog
+                        DispatchQueue.main.async {
+                            NotificationCenter.default.post(name: .progressChanged, object: nil)
+                        }
                     case .stateUpdate(nodeState: let state): self.state = state
                     case .txGossiped(wtxid: let txid): print("\(txid)")
                     }
@@ -251,6 +259,7 @@ struct BDKClient {
     let getBackupInfo: () throws -> BackupInfo
     let getNetwork: () -> Network
     let isConnected: () -> Bool
+    let getProgress: () -> Float
 }
 
 extension BDKClient {
@@ -279,7 +288,8 @@ extension BDKClient {
         getNetwork: {
             BDKService.shared.getNetwork()
         },
-        isConnected: { BDKService.shared.connected }
+        isConnected: { BDKService.shared.connected },
+        getProgress: { BDKService.shared.progress }
     )
 }
 
@@ -323,7 +333,8 @@ extension BDKClient {
                 )
             },
             getNetwork: { return Network.signet },
-            isConnected: { return true }
+            isConnected: { return true },
+            getProgress: { 0.4 }
         )
     }
 #endif

@@ -9,15 +9,12 @@ import SwiftUI
 
 struct ActivityHomeHeaderView: View {
     
-    let progress: Float
-    
     let showAllTransactions: () -> Void
     
     var body: some View {
         HStack {
             Text("Activity")
             Spacer()
-            
             HStack {
                 Button {
                     self.showAllTransactions()
