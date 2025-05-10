@@ -37,9 +37,7 @@ struct TransactionListView: View {
 
                         NavigationLink(
                             destination: TransactionDetailView(
-                                viewModel: .init(
-                                    bdkClient: .live
-                                ),
+                                viewModel: .init(),
                                 amount: sentAndReceivedValues.sent.toSat() == 0
                                     ? sentAndReceivedValues.received.toSat()
                                     : sentAndReceivedValues.sent.toSat()
@@ -90,14 +88,6 @@ struct TransactionListView: View {
             transactions: [
                 .mock
             ],
-        )
-    }
-    #Preview {
-        TransactionListView(
-            viewModel: .init(
-                bdkClient: .mock
-            ),
-            transactions: [],
         )
     }
 #endif

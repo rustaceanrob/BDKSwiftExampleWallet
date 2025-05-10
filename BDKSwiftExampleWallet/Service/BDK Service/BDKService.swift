@@ -161,6 +161,10 @@ private class BDKService {
         updateWarn()
     }
     
+    func stop() {
+        let _ = try? client.shutdown()
+    }
+    
     private func continuallyUpdate() {
         Task {
             while true {
@@ -232,6 +236,7 @@ private class BDKService {
 struct BDKClient {
     let setup: (Wallet, Connection, CbfClient, CbfNode) -> Void
     let listen: () -> Void
+    let stop: () -> Void
     let deleteWallet: () throws -> Void
     let getBalance: () -> Balance
     let transactions: () throws -> [CanonicalTx]
@@ -253,6 +258,7 @@ extension BDKClient {
             in BDKService.setup(BDKService.Conf(wallet: wallet, connection: connection, client: client, node: node))
         },
         listen: { BDKService.shared.listen() },
+        stop: { BDKService.shared.stop() },
         deleteWallet: { try BDKService.shared.deleteWallet() },
         getBalance: { BDKService.shared.getBalance() },
         transactions: { try BDKService.shared.transactions() },
@@ -286,6 +292,7 @@ extension BDKClient {
         static let mock = Self(
             setup: { _, _, _, _ in return },
             listen: {},
+            stop: {},
             deleteWallet: {},
             getBalance: { .mock },
             transactions: {

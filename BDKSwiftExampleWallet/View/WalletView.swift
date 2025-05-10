@@ -129,13 +129,13 @@ struct WalletView: View {
                     }
                 }
             )
-            .task {
-                await viewModel.getPrices()
-            }
             .onAppear {
                 viewModel.getBalance()
                 viewModel.getTransactions()
                 viewModel.getNodeInfo()
+            }
+            .task {
+                await viewModel.getPrices()
             }
 
         }

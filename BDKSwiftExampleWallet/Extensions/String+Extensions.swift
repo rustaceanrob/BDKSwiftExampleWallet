@@ -35,6 +35,12 @@ extension String {
 
         return byteArray
     }
+    
+    static func defaultDataDir() -> String {
+        let documentsDirectoryURL = URL.documentsDirectory
+        let walletDataDirectoryURL = documentsDirectoryURL.appendingPathComponent("wallet_data")
+        return walletDataDirectoryURL.path()
+    }
 }
 
 //#if DEBUG

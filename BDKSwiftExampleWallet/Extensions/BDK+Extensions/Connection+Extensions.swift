@@ -16,4 +16,13 @@ extension Connection {
         let connection = try Connection(path: persistenceBackendPath)
         return connection
     }
+    
+    static func openConnection() throws -> Connection {
+        let documentsDirectoryURL = URL.documentsDirectory
+        let walletDataDirectoryURL = documentsDirectoryURL.appendingPathComponent("wallet_data")
+        let persistenceBackendPath = walletDataDirectoryURL.appendingPathComponent("wallet.sqlite")
+            .path
+        let connection = try Connection(path: persistenceBackendPath)
+        return connection
+    }
 }

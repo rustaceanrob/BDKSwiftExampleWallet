@@ -77,6 +77,8 @@ struct CustomSegmentedControl: View {
     }
 }
 
-#Preview {
-    ActivityListView(viewModel: .init())
-}
+#if DEBUG
+    #Preview {
+        ActivityListView(viewModel: .init(bdkClient: .mock, transactions: [], walletSyncState: .notStarted))
+    }
+#endif

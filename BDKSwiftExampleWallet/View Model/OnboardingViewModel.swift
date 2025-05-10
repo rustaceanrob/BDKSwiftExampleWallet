@@ -93,10 +93,8 @@ class OnboardingViewModel: ObservableObject {
     }
     
     func buildNode(wallet: Wallet) throws -> CbfComponents {
-        let documentsDirectoryURL = URL.documentsDirectory
-        let walletDataDirectoryURL = documentsDirectoryURL.appendingPathComponent("wallet_data")
         let componenets = try CbfBuilder()
-            .dataDir(dataDir: walletDataDirectoryURL.path())
+            .dataDir(dataDir: String.defaultDataDir())
             .scanType(scanType: .new)
             .build(wallet: wallet)
         return componenets
