@@ -13,6 +13,7 @@ import SwiftUI
 @MainActor
 class WalletRecoveryViewModel {
     let bdkClient: BDKClient
+    let keyClient: KeyClient
 
     var backupInfo: BackupInfo?
     var publicDescriptor: Descriptor?
@@ -22,11 +23,13 @@ class WalletRecoveryViewModel {
 
     init(
         bdkClient: BDKClient = .live,
+        keyClient: KeyClient = .live,
         backupInfo: BackupInfo? = nil,
         walletRecoveryViewError: AppError? = nil,
         showingWalletRecoveryViewErrorAlert: Bool = false
     ) {
         self.bdkClient = bdkClient
+        self.keyClient = keyClient
         self.backupInfo = backupInfo
         self.walletRecoveryViewError = walletRecoveryViewError
         self.showingWalletRecoveryViewErrorAlert = showingWalletRecoveryViewErrorAlert
@@ -39,7 +42,7 @@ class WalletRecoveryViewModel {
 
     func getBackupInfo(network: Network) {
         do {
-            let backupInfo = try bdkClient.getBackupInfo()
+            let backupInfo = try keyClient.getBackupInfo()
 
             let externalPublicDescriptor = try Descriptor.init(
                 descriptor: backupInfo.descriptor,

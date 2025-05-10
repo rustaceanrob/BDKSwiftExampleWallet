@@ -14,8 +14,11 @@ import SwiftUI
 // Feature or Bug?
 class OnboardingViewModel: ObservableObject {
     let keyClient: KeyClient
+    let bdkClient: BDKClient
 
     @AppStorage("isOnboarding") var isOnboarding: Bool?
+    @AppStorage("externalDescriptor") var externalDescriptor: String?
+    @AppStorage("internalDescriptor") var internalDescriptor: String?
 
     @Published var applicationError: AppError?
     var isDescriptor: Bool {
@@ -48,14 +51,16 @@ class OnboardingViewModel: ObservableObject {
     }
 
     init(
-        keyClient: KeyClient = .live
+        keyClient: KeyClient = .live,
+        bdkClient: BDKClient = .live
     ) {
         self.keyClient = keyClient
+        self.bdkClient = bdkClient
     }
 
     func createWallet() {
         do {
-            let backupInfo = try deriveBackupInfo()
+            let backupInfo = try buildWallet()
             try keyClient.saveBackupInfo(backupInfo)
             DispatchQueue.main.async {
                 self.isOnboarding = false
@@ -71,7 +76,33 @@ class OnboardingViewModel: ObservableObject {
         }
     }
     
-    func deriveBackupInfo() throws -> BackupInfo {
+    func saveDesciptorBackup(descriptor: Descriptor, changeDescriptor: Descriptor) -> BackupInfo {
+        externalDescriptor = descriptor.description
+        internalDescriptor = changeDescriptor.description
+        let backupInfo = BackupInfo(
+            descriptor: descriptor.toStringWithSecret(),
+            changeDescriptor: changeDescriptor.toStringWithSecret(),
+        )
+        return backupInfo
+    }
+    
+    func initializeWallet(desriptor: Descriptor, changeDescriptor: Descriptor) throws -> (Wallet, Connection) {
+        let connection = try Connection.createConnection()
+        let wallet = try Wallet(descriptor: desriptor, changeDescriptor: changeDescriptor, network: network, connection: connection)
+        return (wallet, connection)
+    }
+    
+    func buildNode(wallet: Wallet) throws -> CbfComponents {
+        let documentsDirectoryURL = URL.documentsDirectory
+        let walletDataDirectoryURL = documentsDirectoryURL.appendingPathComponent("wallet_data")
+        let componenets = try CbfBuilder()
+            .dataDir(dataDir: walletDataDirectoryURL.path())
+            .scanType(scanType: .new)
+            .build(wallet: wallet)
+        return componenets
+    }
+    
+    func buildWallet() throws -> BackupInfo {
         if isDescriptor {
             let descriptorStrings = words.components(separatedBy: "\n")
                 .map { $0.split(separator: "#").first?.trimmingCharacters(in: .whitespaces) ?? "" }
@@ -95,10 +126,11 @@ class OnboardingViewModel: ObservableObject {
             } else {
                 throw AppError.generic(message: "Descriptor parsing failed")
             }
-            let backupInfo = BackupInfo(
-                descriptor: descriptor.toStringWithSecret(),
-                changeDescriptor: changeDescriptor.toStringWithSecret(),
-            )
+            let backupInfo = saveDesciptorBackup(descriptor: descriptor, changeDescriptor: changeDescriptor)
+            let (wallet, connection) = try initializeWallet(desriptor: descriptor, changeDescriptor: changeDescriptor)
+            let cbf = try buildNode(wallet: wallet)
+            bdkClient.setup(wallet, connection, cbf.client, cbf.node)
+            bdkClient.listen()
             isOnboarding = false
             return backupInfo
             
@@ -121,10 +153,11 @@ class OnboardingViewModel: ObservableObject {
                 keychainKind: .internal,
                 network: network
             )
-            let backupInfo = BackupInfo(
-                descriptor: descriptor.toStringWithSecret(),
-                changeDescriptor: changeDescriptor.toStringWithSecret(),
-            )
+            let backupInfo = saveDesciptorBackup(descriptor: descriptor, changeDescriptor: changeDescriptor)
+            let (wallet, connection) = try initializeWallet(desriptor: descriptor, changeDescriptor: changeDescriptor)
+            let cbf = try buildNode(wallet: wallet)
+            bdkClient.setup(wallet, connection, cbf.client, cbf.node)
+            bdkClient.listen()
             isOnboarding = false
             return backupInfo
         }

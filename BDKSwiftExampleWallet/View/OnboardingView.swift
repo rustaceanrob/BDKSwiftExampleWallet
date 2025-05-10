@@ -214,6 +214,6 @@ struct OnboardingView: View {
 
 #if DEBUG
     #Preview("OnboardingView - en") {
-        OnboardingView(viewModel: .init(keyClient: .mock))
+        OnboardingView(viewModel: .init(keyClient: .mock, bdkClient: .mock))
     }
 #endif

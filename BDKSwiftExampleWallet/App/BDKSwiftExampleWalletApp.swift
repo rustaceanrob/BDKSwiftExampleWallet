@@ -18,7 +18,7 @@ struct BDKSwiftExampleWalletApp: App {
             NavigationStack(path: $navigationPath) {
                 let value = try? KeyClient.live.getBackupInfo()
                 if value == nil {
-                    OnboardingView(viewModel: .init(keyClient: .live))
+                    OnboardingView(viewModel: .init(keyClient: .live, bdkClient: .live))
                 } else {
                     HomeView(viewModel: .init(bdkClient: .live), navigationPath: $navigationPath)
                 }

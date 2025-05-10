@@ -28,56 +28,37 @@ extension Notification.Name {
     static let progressChanged = Notification.Name("ProgressChanged")
 }
 
-@Observable
 private class BDKService {
-    static var shared: BDKService = try! BDKService()
+    static var shared: BDKService = BDKService()
+    
+    struct Conf {
+        let wallet: Wallet
+        let connection: Connection
+        let client: CbfClient
+        let node: CbfNode
+    }
+    private static var conf: Conf?
+    
+    class func setup(_ conf: Conf) {
+        BDKService.conf = conf
+    }
     
     private let connection: Connection
-    private let keyClient: KeyClient
     private let wallet: Wallet
     private let client: CbfClient
+    private let node: CbfNode
     public var progress: Float = 0
     public var connected: Bool = false
     public var state: NodeState = .behind
 
-    init(keyClient: KeyClient = .live) throws {
-        self.keyClient = keyClient
-        let backupInfo = try keyClient.getBackupInfo()
-        let descriptor = try Descriptor(descriptor: backupInfo.descriptor, network: NETWORK)
-        let changeDescriptor = try Descriptor(
-            descriptor: backupInfo.changeDescriptor,
-            network: NETWORK
-        )
-        let documentsDirectoryURL = URL.documentsDirectory
-        let walletDataDirectoryURL = documentsDirectoryURL.appendingPathComponent("wallet_data")
-        let persistenceBackendPath = walletDataDirectoryURL.appendingPathComponent("wallet.sqlite").path
-        let databaseInitialized = FileManager.default.fileExists(atPath: persistenceBackendPath)
-        if databaseInitialized {
-            let connection = try Connection(path: persistenceBackendPath)
-            self.connection = connection
-            let wallet = try Wallet.load(
-                descriptor: descriptor,
-                changeDescriptor: changeDescriptor,
-                connection: connection
-            )
-            self.wallet = wallet
-        } else {
-            self.connection = try Connection.createConnection()
-            self.wallet = try Wallet(descriptor: descriptor, changeDescriptor: changeDescriptor, network: NETWORK, connection: self.connection)
-
+    private init() {
+        guard let conf = BDKService.conf else {
+            fatalError("App error - singleton used before initialized")
         }
-        let cbf = try! CbfBuilder()
-            .dataDir(dataDir: walletDataDirectoryURL.path())
-            .scanType(scanType: .new)
-            .build(wallet: self.wallet)
-        self.client = cbf.client
-        cbf.node.run()
-        continuallyUpdate()
-        #if DEBUG
-        printLogs()
-        #endif
-        updateInfo()
-        updateWarn()
+        self.client = conf.client
+        self.wallet = conf.wallet
+        self.node = conf.node
+        self.connection = conf.connection
     }
     
     func getNetwork() -> Network {
@@ -111,18 +92,11 @@ private class BDKService {
             UserDefaults.standard.removePersistentDomain(forName: bundleID)
         }
 
-        try self.keyClient.deleteBackupInfo()
-
         let documentsDirectoryURL = URL.documentsDirectory
         let walletDataDirectoryURL = documentsDirectoryURL.appendingPathComponent("wallet_data")
         if FileManager.default.fileExists(atPath: walletDataDirectoryURL.path) {
             try FileManager.default.removeItem(at: walletDataDirectoryURL)
         }
-    }
-
-    func getBackupInfo() throws -> BackupInfo {
-        let backupInfo = try keyClient.getBackupInfo()
-        return backupInfo
     }
 
     func send(
@@ -175,6 +149,16 @@ private class BDKService {
     func sentAndReceived(tx: Transaction) throws -> SentAndReceivedValues {
         let values = wallet.sentAndReceived(tx: tx)
         return values
+    }
+    
+    func listen() {
+        node.run()
+        continuallyUpdate()
+        #if DEBUG
+        printLogs()
+        #endif
+        updateInfo()
+        updateWarn()
     }
     
     private func continuallyUpdate() {
@@ -246,6 +230,8 @@ private class BDKService {
 }
 
 struct BDKClient {
+    let setup: (Wallet, Connection, CbfClient, CbfNode) -> Void
+    let listen: () -> Void
     let deleteWallet: () throws -> Void
     let getBalance: () -> Balance
     let transactions: () throws -> [CanonicalTx]
@@ -256,7 +242,6 @@ struct BDKClient {
     let calculateFeeRate: (Transaction) throws -> UInt64
     let sentAndReceived: (Transaction) throws -> SentAndReceivedValues
     let buildTransaction: (String, UInt64, UInt64) throws -> Psbt
-    let getBackupInfo: () throws -> BackupInfo
     let getNetwork: () -> Network
     let isConnected: () -> Bool
     let getProgress: () -> Float
@@ -264,6 +249,10 @@ struct BDKClient {
 
 extension BDKClient {
     static let live = Self(
+        setup: { (wallet, connection, client, node)
+            in BDKService.setup(BDKService.Conf(wallet: wallet, connection: connection, client: client, node: node))
+        },
+        listen: { BDKService.shared.listen() },
         deleteWallet: { try BDKService.shared.deleteWallet() },
         getBalance: { BDKService.shared.getBalance() },
         transactions: { try BDKService.shared.transactions() },
@@ -284,7 +273,6 @@ extension BDKClient {
                 feeRate: feeRate
             )
         },
-        getBackupInfo: { try BDKService.shared.getBackupInfo() },
         getNetwork: {
             BDKService.shared.getNetwork()
         },
@@ -296,6 +284,8 @@ extension BDKClient {
 #if DEBUG
     extension BDKClient {
         static let mock = Self(
+            setup: { _, _, _, _ in return },
+            listen: {},
             deleteWallet: {},
             getBalance: { .mock },
             transactions: {
@@ -323,14 +313,6 @@ extension BDKClient {
                     cHNidP8BAIkBAAAAAeaWcxp4/+xSRJ2rhkpUJ+jQclqocoyuJ/ulSZEgEkaoAQAAAAD+////Ak/cDgAAAAAAIlEgqxShDO8ifAouGyRHTFxWnTjpY69Cssr3IoNQvMYOKG/OVgAAAAAAACJRIGnlvMwBz4Ylb6xLTe5g4ZeZCxmVH/XWG+CDlcPzzaoT8qoGAAABAStAQg8AAAAAACJRIFGGvSoLWt3hRAIwYa8KEyawiFTXoOCVWFxYtSofZuAsIRZ2b8YiEpzexWYGt8B5EqLM8BE4qxJY3pkiGw/8zOZGYxkAvh7sj1YAAIABAACAAAAAgAAAAAAEAAAAARcgdm/GIhKc3sVmBrfAeRKizPAROKsSWN6ZIhsP/MzmRmMAAQUge7cvJMsJmR56NzObGOGkm8vNqaAIJdnBXLZD2PvrinIhB3u3LyTLCZkeejczmxjhpJvLzamgCCXZwVy2Q9j764pyGQC+HuyPVgAAgAEAAIAAAACAAQAAAAYAAAAAAQUgtIFPrI2EW/+PJiAmYdmux88p0KgeAxDFLMoeQoS66hIhB7SBT6yNhFv/jyYgJmHZrsfPKdCoHgMQxSzKHkKEuuoSGQC+HuyPVgAAgAEAAIAAAACAAAAAAAIAAAAA
                     """
                 return try! Psbt(psbtBase64: pb64)
-            },
-            getBackupInfo: {
-                BackupInfo(
-                    descriptor:
-                        "tr(tprv8ZgxMBicQKsPdXGCpRXi6PRsH2BaTpP2Aw4K7J5BLVEWHfXYfLZKsPh43VQncqSJucGj6KvzLTNayDcRJEKMfEqLGN1Pi3jjnM7mwRxGQ1s/86\'/1\'/0\'/0/*)#q4yvkz4r",
-                    changeDescriptor:
-                        "tr(tprv8ZgxMBicQKsPdXGCpRXi6PRsH2BaTpP2Aw4K7J5BLVEWHfXYfLZKsPh43VQncqSJucGj6KvzLTNayDcRJEKMfEqLGN1Pi3jjnM7mwRxGQ1s/86\'/1\'/0\'/1/*)#3ppdth9m",
-                )
             },
             getNetwork: { return Network.signet },
             isConnected: { return true },
