@@ -165,8 +165,8 @@ struct BuildTransactionView: View {
 
                     } else if isSent && !isError {
                         VStack {
-                            Image(systemName: "checkmark")
-                                .foregroundStyle(.green)
+                            ProgressView()
+                                .progressViewStyle(.circular)
                             if let transaction = viewModel.extractTransaction() {
                                 HStack {
                                     Text(transaction.computeTxid())

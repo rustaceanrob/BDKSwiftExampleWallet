@@ -40,11 +40,11 @@ struct WalletView: View {
                     }
                 }
                 VStack {
-                    ProgressView(value: viewModel.progress, total: 1.0)
-                        .progressViewStyle(.linear)
-                        .foregroundStyle(.secondary)
-                        .opacity(1.0 - viewModel.progress.magnitudeSquared)
-                        .animation(.easeInOut, value: true)
+//                    ProgressView(value: viewModel.progress, total: 1.0)
+//                        .progressViewStyle(.linear)
+//                        .foregroundStyle(.secondary)
+//                        .opacity(1.0 - viewModel.progress.magnitudeSquared)
+//                        .animation(.easeInOut, value: true)
                     ActivityHomeHeaderView() {
                         showAllTransactions = true
                     }
