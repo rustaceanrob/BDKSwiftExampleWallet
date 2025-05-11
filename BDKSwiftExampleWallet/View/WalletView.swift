@@ -127,6 +127,7 @@ struct WalletView: View {
             )
             .onAppear {
                 viewModel.getBalance()
+                print("Called getbalance")
                 viewModel.getTransactions()
                 viewModel.getNodeInfo()
             }

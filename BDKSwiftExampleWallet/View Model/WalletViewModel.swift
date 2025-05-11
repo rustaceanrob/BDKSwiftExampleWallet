@@ -74,15 +74,7 @@ class WalletViewModel {
     }
 
     func getTransactions() {
-        do {
-            let transactionDetails = try bdkClient.transactions()
-            self.transactions = transactionDetails
-        } catch let error as WalletError {
-            self.walletViewError = .generic(message: error.localizedDescription)
-            self.showingWalletViewErrorAlert = true
-        } catch {
-            self.walletViewError = .generic(message: error.localizedDescription)
-            self.showingWalletViewErrorAlert = true
-        }
+        let transactionDetails = bdkClient.transactions()
+        self.transactions = transactionDetails
     }
 }

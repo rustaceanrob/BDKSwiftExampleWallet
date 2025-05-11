@@ -75,7 +75,7 @@ private class BDKService {
         wallet.balance()
     }
 
-    func transactions() throws -> [CanonicalTx] {
+    func transactions() -> [CanonicalTx] {
         let transactions = wallet.transactions()
         let sortedTransactions = transactions.sorted { (tx1, tx2) in
             return tx1.chainPosition.isBefore(tx2.chainPosition)
@@ -83,7 +83,7 @@ private class BDKService {
         return sortedTransactions
     }
 
-    func listUnspent() throws -> [LocalOutput] {
+    func listUnspent() -> [LocalOutput] {
         wallet.listUnspent()
     }
 
@@ -239,8 +239,8 @@ struct BDKClient {
     let stop: () -> Void
     let deleteWallet: () throws -> Void
     let getBalance: () -> Balance
-    let transactions: () throws -> [CanonicalTx]
-    let listUnspent: () throws -> [LocalOutput]
+    let transactions: () -> [CanonicalTx]
+    let listUnspent: () -> [LocalOutput]
     let getAddress: () throws -> String
     let send: (String, UInt64, UInt64) throws -> Void
     let calculateFee: (Transaction) throws -> Amount
@@ -261,8 +261,8 @@ extension BDKClient {
         stop: { BDKService.shared.stop() },
         deleteWallet: { try BDKService.shared.deleteWallet() },
         getBalance: { BDKService.shared.getBalance() },
-        transactions: { try BDKService.shared.transactions() },
-        listUnspent: { try BDKService.shared.listUnspent() },
+        transactions: { BDKService.shared.transactions() },
+        listUnspent: { BDKService.shared.listUnspent() },
         getAddress: { try BDKService.shared.getAddress() },
         send: { (address, amount, feeRate) in
             Task {
