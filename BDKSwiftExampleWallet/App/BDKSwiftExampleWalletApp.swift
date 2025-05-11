@@ -9,12 +9,6 @@ import BitcoinDevKit
 import BackgroundTasks
 import SwiftUI
 
-extension String {
-    static func backgroundTaskName() -> String {
-        "com.robertnetzke.kyotoreferenceclient.sync"
-    }
-}
-
 @main
 struct BDKSwiftExampleWalletApp: App {
     @AppStorage("isOnboarding") var isOnboarding: Bool = true
@@ -27,8 +21,7 @@ struct BDKSwiftExampleWalletApp: App {
     var body: some Scene {
         WindowGroup {
             NavigationStack(path: $navigationPath) {
-                let value = try? KeyClient.live.getBackupInfo()
-                if value == nil {
+                if isOnboarding {
                     OnboardingView(viewModel: .init(keyClient: .live, bdkClient: .live))
                 } else {
                     HomeView(viewModel: .init(bdkClient: .live), navigationPath: $navigationPath)
@@ -69,14 +62,14 @@ struct BDKSwiftExampleWalletApp: App {
     }
     
     func registerBackgroundTasks() {
-        BGTaskScheduler.shared.register(forTaskWithIdentifier: String.backgroundTaskName(), using: nil) {
+        BGTaskScheduler.shared.register(forTaskWithIdentifier: .backgroundTaskName, using: nil) {
             (task) in
             self.handleBackgroundSync(task: task as! BGProcessingTask)
         }
     }
     
     func scheduleBackgroundSync() {
-        let request = BGProcessingTaskRequest(identifier: String.backgroundTaskName())
+        let request = BGProcessingTaskRequest(identifier: .backgroundTaskName)
         request.requiresExternalPower = true
         request.requiresNetworkConnectivity = true
         if let next3AM = Calendar.current.date(

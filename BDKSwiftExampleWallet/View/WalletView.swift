@@ -89,44 +89,40 @@ struct WalletView: View {
                     for: Notification.Name("AddressGenerated")
                 ),
                 perform: { _ in
+                    viewModel.getBalance()
+                    viewModel.getTransactions()
                     Task {
-                        viewModel.getBalance()
-                        viewModel.getTransactions()
                         await viewModel.getPrices()
                     }
                 }
             )
             .onReceive(
                 NotificationCenter.default.publisher(
-                    for: Notification.Name("WalletUpdated")
+                    for: .walletUpdated
                 ),
                 perform: { _ in
+                    viewModel.progress = 1.0
+                    viewModel.getBalance()
+                    viewModel.getTransactions()
                     Task {
-                        viewModel.progress = 1.0
-                        viewModel.getBalance()
-                        viewModel.getTransactions()
                         await viewModel.getPrices()
                     }
                 }
             )
             .onReceive(
                 NotificationCenter.default.publisher(
-                    for: Notification.Name("ConnectionsChanged")
+                    for: .connectionsChanged
                 ),
                 perform: { _ in
-                    Task {
-                        viewModel.getNodeInfo()
-                    }
+                    viewModel.getNodeInfo()
                 }
             )
             .onReceive(
                 NotificationCenter.default.publisher(
-                    for: Notification.Name("ProgressChanged")
+                    for: .progressChanged
                 ),
                 perform: { _ in
-                    Task {
-                        viewModel.getNodeInfo()
-                    }
+                    viewModel.getNodeInfo()
                 }
             )
             .onAppear {

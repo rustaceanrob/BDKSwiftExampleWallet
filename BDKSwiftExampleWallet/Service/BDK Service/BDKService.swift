@@ -17,15 +17,15 @@ var NETWORK: Network {
 }
 
 extension Notification.Name {
-    static let walletUpdated = Notification.Name("WalletUpdated")
+    static let walletUpdated = Notification.Name(.walletUpdatedNotification)
 }
 
 extension Notification.Name {
-    static let connectionsChanged = Notification.Name("ConnectionsChanged")
+    static let connectionsChanged = Notification.Name(.connectionsChangedNotification)
 }
 
 extension Notification.Name {
-    static let progressChanged = Notification.Name("ProgressChanged")
+    static let progressChanged = Notification.Name(.progressChangedNotification)
 }
 
 private class BDKService {
