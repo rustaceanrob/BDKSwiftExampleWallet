@@ -71,16 +71,6 @@ class BuildTransactionViewModel {
     func send(address: String, amount: UInt64, feeRate: UInt64) {
         do {
             try bdkClient.send(address, amount, feeRate)
-            NotificationCenter.default.post(
-                name: Notification.Name("TransactionSent"),
-                object: nil
-            )
-        } catch let error as EsploraError {
-            self.buildTransactionViewError = .generic(message: error.localizedDescription)
-            self.showingBuildTransactionViewErrorAlert = true
-        } catch let error as SignerError {
-            self.buildTransactionViewError = .generic(message: error.localizedDescription)
-            self.showingBuildTransactionViewErrorAlert = true
         } catch let error as WalletError {
             self.buildTransactionViewError = .generic(message: error.localizedDescription)
             self.showingBuildTransactionViewErrorAlert = true

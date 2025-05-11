@@ -55,5 +55,7 @@ extension String {
     static var connectionsChangedNotification = "ConnectionsChanged"
 
     static var progressChangedNotification = "ProgressChanged"
+    
+    static var transactionSentNotification = "TransactionSent"
 }
 //#endif

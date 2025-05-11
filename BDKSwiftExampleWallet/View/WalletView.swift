@@ -79,7 +79,7 @@ struct WalletView: View {
             }
             .padding()
             .onReceive(
-                NotificationCenter.default.publisher(for: Notification.Name("TransactionSent")),
+                NotificationCenter.default.publisher(for: .transactionSent),
                 perform: { _ in
                     newTransactionSent = true
                 }
@@ -127,7 +127,6 @@ struct WalletView: View {
             )
             .onAppear {
                 viewModel.getBalance()
-                print("Called getbalance")
                 viewModel.getTransactions()
                 viewModel.getNodeInfo()
             }

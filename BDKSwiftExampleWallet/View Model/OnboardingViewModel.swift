@@ -42,13 +42,6 @@ class OnboardingViewModel: ObservableObject {
         return Constants.BitcoinNetworkColor.bitcoin.color
         #endif
     }
-    var network: Network {
-        #if DEBUG
-        return BitcoinDevKit.Network.signet
-        #else
-        return BitcoinDevKit.Network.bitcoin
-        #endif
-    }
 
     init(
         keyClient: KeyClient = .live,
@@ -56,6 +49,19 @@ class OnboardingViewModel: ObservableObject {
     ) {
         self.keyClient = keyClient
         self.bdkClient = bdkClient
+    }
+    
+    func getNewWords() {
+        var bytes = [UInt8](repeating: 0, count: 32)
+        let status = SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)
+        if status == errSecSuccess {
+            do {
+                let trng_words = try Mnemonic.fromEntropy(entropy: Data(bytes))
+                self.words = trng_words.description
+            } catch {
+                self.onboardingViewError = .generic(message: error.localizedDescription)
+            }
+        }
     }
 
     func createWallet() {
@@ -88,7 +94,7 @@ class OnboardingViewModel: ObservableObject {
     
     func initializeWallet(desriptor: Descriptor, changeDescriptor: Descriptor) throws -> (Wallet, Connection) {
         let connection = try Connection.createConnection()
-        let wallet = try Wallet(descriptor: desriptor, changeDescriptor: changeDescriptor, network: network, connection: connection)
+        let wallet = try Wallet(descriptor: desriptor, changeDescriptor: changeDescriptor, network: NETWORK, connection: connection)
         return (wallet, connection)
     }
     
@@ -110,7 +116,7 @@ class OnboardingViewModel: ObservableObject {
             if descriptorStrings.count == 1 {
                 let parsedDescriptor = try Descriptor(
                     descriptor: descriptorStrings[0],
-                    network: network
+                    network: NETWORK
                 )
                 let singleDescriptors = try parsedDescriptor.toSingleDescriptors()
                 guard singleDescriptors.count >= 2 else {
@@ -119,8 +125,8 @@ class OnboardingViewModel: ObservableObject {
                 descriptor = singleDescriptors[0]
                 changeDescriptor = singleDescriptors[1]
             } else if descriptorStrings.count == 2 {
-                descriptor = try Descriptor(descriptor: descriptorStrings[0], network: network)
-                changeDescriptor = try Descriptor(descriptor: descriptorStrings[1], network: network)
+                descriptor = try Descriptor(descriptor: descriptorStrings[0], network: NETWORK)
+                changeDescriptor = try Descriptor(descriptor: descriptorStrings[1], network: NETWORK)
             } else {
                 throw AppError.generic(message: "Descriptor parsing failed")
             }
@@ -129,7 +135,6 @@ class OnboardingViewModel: ObservableObject {
             let cbf = try buildNode(wallet: wallet)
             bdkClient.setup(wallet, connection, cbf.client, cbf.node)
             bdkClient.listen()
-            isOnboarding = false
             return backupInfo
             
         } else {
@@ -137,26 +142,25 @@ class OnboardingViewModel: ObservableObject {
                 throw AppError.generic(message: "Invalid mnemonic")
             }
             let secretKey = DescriptorSecretKey(
-                network: network,
+                network: NETWORK,
                 mnemonic: mnemonic,
                 password: nil
             )
             let descriptor = Descriptor.newBip86(
                 secretKey: secretKey,
                 keychainKind: .external,
-                network: network
+                network: NETWORK
             )
             let changeDescriptor = Descriptor.newBip86(
                 secretKey: secretKey,
                 keychainKind: .internal,
-                network: network
+                network: NETWORK
             )
             let backupInfo = saveDesciptorBackup(descriptor: descriptor, changeDescriptor: changeDescriptor)
             let (wallet, connection) = try initializeWallet(desriptor: descriptor, changeDescriptor: changeDescriptor)
             let cbf = try buildNode(wallet: wallet)
             bdkClient.setup(wallet, connection, cbf.client, cbf.node)
             bdkClient.listen()
-            isOnboarding = false
             return backupInfo
         }
     }

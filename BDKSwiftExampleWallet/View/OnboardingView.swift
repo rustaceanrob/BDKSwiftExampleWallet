@@ -135,8 +135,7 @@ struct OnboardingView: View {
                 if viewModel.words.isEmpty {
                     Button("New Wallet") {
                         if viewModel.words.isEmpty {
-                            let words = Mnemonic(wordCount: WordCount.words12)
-                            viewModel.words = words.description
+                            viewModel.getNewWords()
                         }
                     }
                     .buttonStyle(

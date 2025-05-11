@@ -18,14 +18,12 @@ var NETWORK: Network {
 
 extension Notification.Name {
     static let walletUpdated = Notification.Name(.walletUpdatedNotification)
-}
 
-extension Notification.Name {
     static let connectionsChanged = Notification.Name(.connectionsChangedNotification)
-}
 
-extension Notification.Name {
     static let progressChanged = Notification.Name(.progressChangedNotification)
+    
+    static let transactionSent = Notification.Name(.transactionSentNotification)
 }
 
 private class BDKService {
@@ -204,7 +202,13 @@ private class BDKService {
                             NotificationCenter.default.post(name: .progressChanged, object: nil)
                         }
                     case .stateUpdate(nodeState: let state): self.state = state
-                    case .txGossiped(wtxid: let txid): print("\(txid)")
+                    case .txGossiped(wtxid: let wtxid):
+                        DispatchQueue.main.async {
+                            NotificationCenter.default.post(name: .transactionSent, object: nil)
+                        }
+                        #if DEBUG
+                        print("WTXID: \(wtxid)")
+                        #endif
                     }
                 }
             }

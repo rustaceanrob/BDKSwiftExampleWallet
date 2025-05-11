@@ -22,7 +22,7 @@ class WalletViewModel {
         guard let backupInfo = try? keyClient.getBackupInfo() else { return false }
         return backupInfo.descriptor.contains("tprv") || backupInfo.descriptor.contains("xprv")
     }
-    var connected: Bool = false
+    var connected: Bool = true
     var price: Double = 0.00
     var progress: Float = 0.0
     var recentTransactions: [CanonicalTx] {
