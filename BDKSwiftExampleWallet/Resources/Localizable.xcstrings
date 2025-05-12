@@ -685,9 +685,6 @@
         }
       }
     },
-    "Hacked by 2140" : {
-
-    },
     "HomeView Error" : {
       "localizations" : {
         "fr" : {
@@ -915,6 +912,9 @@
           }
         }
       }
+    },
+    "Powered by Bitcoin Dev Kit" : {
+
     },
     "Receive" : {
       "localizations" : {

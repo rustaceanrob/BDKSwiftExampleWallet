@@ -78,12 +78,12 @@ struct OnboardingView: View {
 
                 VStack(spacing: isSmallDevice ? 5 : 25) {
                     if viewModel.words.isEmpty {
-                        Image(systemName: "bitcoinsign.circle")
+                        Image("2104-Logo-Large")
                             .resizable()
                             .foregroundStyle(.secondary)
                             .frame(
-                                width: isSmallDevice ? 40 : 100,
-                                height: isSmallDevice ? 40 : 100,
+                                width: isSmallDevice ? 140 : 140,
+                                height: isSmallDevice ? 80 : 80,
                                 alignment: .center
                             )
                             .scaleEffect(animateContent ? 1 : 0)
@@ -93,7 +93,7 @@ struct OnboardingView: View {
                                 value: animateContent
                             )
                     }
-                    Text("Hacked by 2140")
+                    Text("Powered by Bitcoin Dev Kit")
                         .foregroundStyle(
                             LinearGradient(
                                 gradient: Gradient(colors: [.secondary, .primary]),
