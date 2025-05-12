@@ -193,7 +193,11 @@ private class BDKService {
                         DispatchQueue.main.async {
                             NotificationCenter.default.post(name: .progressChanged, object: nil)
                         }
-                    case .stateUpdate(nodeState: let state): self.state = state
+                    case .stateUpdate(nodeState: let state):
+                        DispatchQueue.main.async {
+                            NotificationCenter.default.post(name: .progressChanged, object: nil)
+                        }
+                        self.state = state
                     case .txGossiped(wtxid: let wtxid):
                         DispatchQueue.main.async {
                             NotificationCenter.default.post(name: .transactionSent, object: nil)
@@ -246,6 +250,7 @@ struct BDKClient {
     let getNetwork: () -> Network
     let isConnected: () -> Bool
     let getProgress: () -> Float
+    let getNodeState: () -> NodeState
 }
 
 extension BDKClient {
@@ -279,7 +284,8 @@ extension BDKClient {
             BDKService.shared.getNetwork()
         },
         isConnected: { BDKService.shared.connected },
-        getProgress: { BDKService.shared.progress }
+        getProgress: { BDKService.shared.progress },
+        getNodeState: { BDKService.shared.state },
     )
 }
 
@@ -319,7 +325,8 @@ extension BDKClient {
             },
             getNetwork: { return Network.signet },
             isConnected: { return true },
-            getProgress: { 0.4 }
+            getProgress: { 0.4 },
+            getNodeState: { .behind },
         )
     }
 #endif

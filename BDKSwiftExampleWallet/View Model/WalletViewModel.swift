@@ -25,6 +25,7 @@ class WalletViewModel {
     var connected: Bool = true
     var price: Double = 0.00
     var progress: Float = 0.0
+    var nodeState: NodeState = .behind
     var recentTransactions: [CanonicalTx] {
         let maxTransactions = UIScreen.main.isPhoneSE ? 4 : 5
         return Array(transactions.prefix(maxTransactions))
@@ -71,6 +72,7 @@ class WalletViewModel {
     func getNodeInfo() {
         self.connected = bdkClient.isConnected()
         self.progress = bdkClient.getProgress()
+        self.nodeState = bdkClient.getNodeState()
     }
 
     func getTransactions() {
