@@ -7,7 +7,7 @@
 		<string>com.robertnetzke.kyotoreferenceclient.sync</string>
 	</array>
 	<key>NSPasteboardUsageDescription</key>
-	<string>&quot;To allow users to copy and paste text between the app and other apps&quot;</string>
+	<string>"To allow users to copy and paste text between the app and other apps"</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>

@@ -28,7 +28,7 @@ struct ReceiveView: View {
                 HStack {
                     Spacer()
                     Button {
-                        viewModel.startNFCSession()
+                        // viewModel.startNFCSession()
                     } label: {
                         Image(systemName: "wave.3.right")
                             .foregroundColor(.primary)
@@ -36,6 +36,8 @@ struct ReceiveView: View {
                 }
                 .padding(.trailing)
                 .padding(.top)
+                // NFC is not allowed for personal development teams
+                .disabled(true)
 
                 VStack(spacing: 8) {
                     Image("bitcoinsign.arrow.down")
