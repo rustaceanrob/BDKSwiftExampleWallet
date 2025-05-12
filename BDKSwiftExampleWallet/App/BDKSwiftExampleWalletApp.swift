@@ -42,6 +42,7 @@ struct BDKSwiftExampleWalletApp: App {
                     let wallet = try Wallet.load(descriptor: descriptor, changeDescriptor: changeDescriptor, connection: connection)
                     let cbf = try CbfBuilder()
                         .dataDir(dataDir: String.defaultDataDir())
+                        .logLevel(logLevel: LOG_LEVEL)
                         .scanType(scanType: .sync)
                         .build(wallet: wallet)
                     BDKClient.live.setup(wallet, connection, cbf.client, cbf.node)
@@ -103,6 +104,7 @@ struct BDKSwiftExampleWalletApp: App {
                 let cbf = try CbfBuilder()
                     .dataDir(dataDir: String.defaultDataDir())
                     .scanType(scanType: .sync)
+                    .logLevel(logLevel: LOG_LEVEL)
                     .build(wallet: wallet)
                 let node = cbf.node
                 node.run()

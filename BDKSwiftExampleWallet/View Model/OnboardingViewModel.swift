@@ -101,7 +101,8 @@ class OnboardingViewModel: ObservableObject {
     func buildNode(wallet: Wallet) throws -> CbfComponents {
         let componenets = try CbfBuilder()
             .dataDir(dataDir: String.defaultDataDir())
-            .scanType(scanType: .new)
+            .logLevel(logLevel: LOG_LEVEL)
+            .scanType(scanType: .recovery(fromHeight: TAPROOT_HEIGHT))
             .build(wallet: wallet)
         return componenets
     }

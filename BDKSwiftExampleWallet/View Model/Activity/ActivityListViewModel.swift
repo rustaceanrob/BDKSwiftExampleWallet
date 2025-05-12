@@ -34,27 +34,10 @@ class ActivityListViewModel {
     }
 
     func getTransactions() {
-        do {
-            let transactionDetails = try bdkClient.transactions()
-            self.transactions = transactionDetails
-        } catch let error as WalletError {
-            self.walletViewError = .generic(message: error.localizedDescription)
-            self.showingWalletViewErrorAlert = true
-        } catch {
-            self.walletViewError = .generic(message: error.localizedDescription)
-            self.showingWalletViewErrorAlert = true
-        }
+        self.transactions = bdkClient.transactions()
     }
 
     func listUnspent() {
-        do {
-            self.localOutputs = try bdkClient.listUnspent()
-        } catch let error as WalletError {
-            self.walletViewError = .generic(message: error.localizedDescription)
-            self.showingWalletViewErrorAlert = true
-        } catch {
-            self.walletViewError = .generic(message: error.localizedDescription)
-            self.showingWalletViewErrorAlert = true
-        }
+        self.localOutputs = bdkClient.listUnspent()
     }
 }

@@ -8,14 +8,6 @@
 import BitcoinDevKit
 import Foundation
 
-var NETWORK: Network {
-    #if DEBUG
-    return BitcoinDevKit.Network.signet
-    #else
-    return BitcoinDevKit.Network.bitcoin
-    #endif
-}
-
 extension Notification.Name {
     static let walletUpdated = Notification.Name(.walletUpdatedNotification)
 
