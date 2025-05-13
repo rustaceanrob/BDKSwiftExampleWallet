@@ -16,6 +16,7 @@ struct BDKSwiftExampleWalletApp: App {
     
     init() {
         registerBackgroundTasks()
+        scheduleBackgroundSync()
     }
 
     var body: some Scene {
@@ -95,34 +96,47 @@ struct BDKSwiftExampleWalletApp: App {
         
         let operation = BlockOperation {
             do {
+                print("Loading in descriptors")
                 guard let descriptor = UserDefaults.standard.string(forKey: "externalDescriptor") else { return }
                 guard let change = UserDefaults.standard.string(forKey: "internalDescriptor") else { return }
+                print("Building descriptors")
                 let externalDesc = try Descriptor(descriptor: descriptor, network: NETWORK)
                 let internalDesc = try Descriptor(descriptor: change, network: NETWORK)
+                print("Opening database connection")
                 let connection = try Connection.openConnection()
+                print("Loading wallet")
                 let wallet = try Wallet.load(descriptor: externalDesc, changeDescriptor: internalDesc, connection: connection)
+                print("Building node")
                 let cbf = try CbfBuilder()
                     .dataDir(dataDir: String.defaultDataDir())
                     .scanType(scanType: .sync)
                     .logLevel(logLevel: LOG_LEVEL)
                     .build(wallet: wallet)
                 let node = cbf.node
+                print("Running the node")
                 node.run()
                 let client = cbf.client
+                print("Node successfully detached")
                 Task {
+                    print("Awaiting update")
                     let update = await client.update()
                     await MainActor.run {
                         walletUpdate = update
                     }
+                    print("Update ready")
                     semaphore.signal()
                 }
                 semaphore.wait()
-                guard let update = walletUpdate else {
-                    return
-                }
+                guard let update = walletUpdate else { return }
+                print("Applying update")
                 try wallet.applyUpdate(update: update)
+                print("Persisting update")
                 let _ = try wallet.persist(connection: connection)
-            } catch {}
+                print("Done")
+            } catch {
+                print("Background sync failed")
+            }
+            return
         }
         
         queue.addOperation(operation)
